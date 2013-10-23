@@ -1,0 +1,46 @@
+#!/bin/bash
+
+KNOWN_CHAINS=`iptables -n -L | grep "Chain" | awk '{print $2}'`
+
+case $1 in
+    config)
+
+        ## Configure the plugin
+
+        # Basic graph values
+        echo "graph_vlabel Rules per chain"
+        echo "graph_title Rules of each chain"
+        echo "graph_category Network"
+        echo "graph_scale no"
+        echo "graph_info Shows how much entrys for each chain in iptablesa are stored"
+
+        # Prepare a 'line' for each chain
+        for currentChain in $KNOWN_CHAINS
+        do
+
+            # Print 'labels' for each chain            
+            echo "${currentChain//-/}.label $currentChain"
+            echo "${currentChain//-/}.type GAUGE"
+            echo "${currentChain//-/}.min 0"
+
+        done
+    ;;
+
+    autoconf)
+
+        # Print yes if the plugin think it can be run otherwise no
+        echo "yes"
+
+    ;;
+    *)
+        # Fetch the data
+        for currentChain in $KNOWN_CHAINS
+        do
+
+            # Print value
+            echo "${currentChain//-/}.value `iptables -S $currentChain | wc -l`"
+
+        done
+
+    ;;
+esac
